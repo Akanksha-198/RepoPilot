@@ -1,0 +1,8 @@
+fastapi
+streamlit
+uvicorn[standard]
+python-dotenv
+pydantic
+langchain
+langchain-core
+langchain-mistralai
