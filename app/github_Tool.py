@@ -4,6 +4,7 @@ import subprocess
 from urllib.parse import urlparse
 
 
+
 def repository_name(github_url: str) -> str:
     """Extract repository name from a GitHub URL."""
 
