@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: repopilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: repopilot
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U repopilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # The AI service runs untrusted repository code (npm build, compileall) -> sandboxed container.
+  ai:
+    build: ./ai-service
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      WORKSPACE_ROOT: /srv/workspace
+      DATA_DIR: /srv/data
+    volumes:
+      - workspace:/srv/workspace
+      - chroma:/srv/chroma_db
+      - aidata:/srv/data
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    mem_limit: 2g
+    cpus: 1.5
+    pids_limit: 512
+    tmpfs: ["/tmp:rw,exec,size=512m,mode=1777"]
+    expose: ["8000"]          # internal only - never published
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://repopilot:${POSTGRES_PASSWORD}@db:5432/repopilot
+      AI_SERVICE_URL: http://ai:8000
+      NODE_ENV: production
+    depends_on:
+      db: { condition: service_healthy }
+      ai: { condition: service_started }
+    expose: ["4000"]
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports: ["80:80", "443:443"]
+    volumes: [caddy_data:/data]
+    depends_on: [api]
+
+volumes: { pgdata: {}, workspace: {}, chroma: {}, aidata: {}, caddy_data: {} }
