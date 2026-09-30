@@ -88,33 +88,8 @@ MISTRAL_API_KEY=
 
 > Never commit `.env`, API keys, passwords, or tokens to GitHub.
 
-### 3. Start with Docker
 
-```bash
-docker compose up -d --build
-```
 
-Open:
-
-```text
-http://localhost
-```
-
-## 🌐 Free Public Demo
-
-For a temporary free public link using Cloudflare:
-
-```bash
-cloudflared tunnel --url http://localhost:80
-```
-
-Cloudflare will generate a temporary URL:
-
-```text
-https://xxxx.trycloudflare.com
-```
-
-> Keep the Cloudflare terminal running while the public demo is active.
 
 ## 🔐 Security
 
